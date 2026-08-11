@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>財富人生互動試算</title>
-    <!-- 引入 html2canvas 以支援網頁卡片截圖功能 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* 文青可愛風專屬配色體系 */
         :root { 
@@ -15,7 +13,6 @@
             --m-white: #FDFBF7;      /* 柔和純白 */
             --m-text: #333333;       /* 深灰字體 */
             --m-light-orange: #FFF6EE; /* 淺焦糖底色 */
-            --line-green: #06C755;   /* LINE 品牌綠 */
             
             /* 全站動態字體縮放基底 */
             --font-scale: 1;
@@ -112,7 +109,6 @@
         .btn-cute-center:active { transform: scale(0.96); }
         .btn-cute-center:disabled { background: #DCD9D2; color: #A5A29B; box-shadow: none; cursor: not-allowed; }
         .btn-cute-orange { background: linear-gradient(135deg, #EC944D, var(--m-orange)); box-shadow: 0 6px 15px rgba(217,119,36,0.25); }
-        .btn-line { background: var(--line-green); color: white; box-shadow: 0 6px 15px rgba(6,199,85,0.3); }
 
         .divider { border-top: 1px dashed #E4DFD5; margin: 6px 0; flex-shrink: 0; }
         .report-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.2); font-size: calc(0.92rem * var(--font-scale)); }
@@ -141,7 +137,7 @@
             <input type="text" id="name" placeholder="請輸入您的姓名" style="width:100%; padding:10px; border-radius:12px;" oninput="checkStart()">
         </div>
 
-        <!-- 新增：文字大小調節拉霸 -->
+        <!-- 文字大小調節拉霸 -->
         <div style="margin-bottom:18px; background:#FAF8F5; padding:10px; border-radius:12px; border:1px solid #E4DFD5;">
             <div class="val-row-container">
                 <div class="val-display" style="font-size:calc(0.95rem * var(--font-scale));">🔍 畫面文字大小：<span id="v_font_scale">100%</span></div>
@@ -355,30 +351,25 @@
         </div>
     </div>
 
-    <!-- Step 7: 結算與 截圖一鍵分享 LINE -->
+    <!-- Step 7: 結算總覽 -->
     <div class="step" id="step7" style="justify-content: center; padding: 10px 18px;">
-        <!-- 自動截圖的指定目標卡片區域 -->
-        <div id="capture_area" style="padding: 10px; background: var(--m-white); border-radius: 16px;">
-            <div id="res_header" style="text-align:center; margin-bottom:8px; font-weight:bold; color:var(--m-green); font-size:calc(1.1rem * var(--font-scale));"></div>
-            <div class="script-box" style="margin-bottom:10px; text-align:center; font-weight:bold; background:#FFF0F0; border-left:5px solid #C0392B; padding:8px; font-size:calc(0.95rem * var(--font-scale)); color: #7F231C;">
-                我們一輩子工作賺的錢，怎麼會夠用？不夠怎麼辦？
-            </div>
-            <div style="background:var(--m-green); color:white; border-radius:16px; padding:14px 18px; box-shadow:0 8px 20px rgba(107,142,35,0.2);">
-                <div class="report-item" style="font-weight:bold; border-bottom:1.5px solid white; padding-bottom:6px; font-size:calc(1rem * var(--font-scale));"><span id="report_title_years">項目明細 (工作30年)</span><span>預算金額</span></div>
-                <div class="report-item" style="background:rgba(255,255,255,0.15); font-weight:bold; border-radius: 6px; padding: 8px 6px;"><span>預估生涯總收入</span><span id="r_inc_total"></span></div>
-                <div class="report-item"><span>1. 基本開銷總計</span><span id="r1"></span></div>
-                <div class="report-item"><span>2. 車輛花費 (含養車)</span><span id="r2"></span></div>
-                <div class="report-item"><span>3. 出國旅遊總計</span><span id="r3"></span></div>
-                <div class="report-item"><span>4. 房屋總支出 (含利息)</span><span id="r4"></span></div>
-                <div class="report-item"><span>5. 子女養育總費</span><span id="r5"></span></div>
-                <div class="report-item"><span>6. 預計準備退休金</span><span id="r6"></span></div>
-                <div class="report-item" style="border:none; margin-top:6px; font-size:calc(1.15rem * var(--font-scale)); font-weight:bold; padding-top:6px;"><span>最終財富餘額</span><span id="rf"></span></div>
-            </div>
+        <div id="res_header" style="text-align:center; margin-bottom:8px; font-weight:bold; color:var(--m-green); font-size:calc(1.1rem * var(--font-scale));"></div>
+        <div class="script-box" style="margin-bottom:10px; text-align:center; font-weight:bold; background:#FFF0F0; border-left:5px solid #C0392B; padding:8px; font-size:calc(0.95rem * var(--font-scale)); color: #7F231C;">
+            我們一輩子工作賺的錢，怎麼會夠用？不夠怎麼辦？
+        </div>
+        <div style="background:var(--m-green); color:white; border-radius:16px; padding:14px 18px; box-shadow:0 8px 20px rgba(107,142,35,0.2);">
+            <div class="report-item" style="font-weight:bold; border-bottom:1.5px solid white; padding-bottom:6px; font-size:calc(1rem * var(--font-scale));"><span id="report_title_years">項目明細 (工作30年)</span><span>預算金額</span></div>
+            <div class="report-item" style="background:rgba(255,255,255,0.15); font-weight:bold; border-radius: 6px; padding: 8px 6px;"><span>預估生涯總收入</span><span id="r_inc_total"></span></div>
+            <div class="report-item"><span>1. 基本開銷總計</span><span id="r1"></span></div>
+            <div class="report-item"><span>2. 車輛花費 (含養車)</span><span id="r2"></span></div>
+            <div class="report-item"><span>3. 出國旅遊總計</span><span id="r3"></span></div>
+            <div class="report-item"><span>4. 房屋總支出 (含利息)</span><span id="r4"></span></div>
+            <div class="report-item"><span>5. 子女養育總費</span><span id="r5"></span></div>
+            <div class="report-item"><span>6. 預計準備退休金</span><span id="r6"></span></div>
+            <div class="report-item" style="border:none; margin-top:6px; font-size:calc(1.15rem * var(--font-scale)); font-weight:bold; padding-top:6px;"><span>最終財富餘額</span><span id="rf"></span></div>
         </div>
 
-        <!-- 操作按鈕區 -->
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-            <button class="btn-cute-center btn-line" onclick="captureAndShareToLine()">📸 一鍵截圖分享至 LINE</button>
+        <div style="margin-top: 15px;">
             <button class="btn-cute-center btn-cute-orange" onclick="location.reload()">🔄 再測一次 🐾</button>
         </div>
     </div>
@@ -388,7 +379,6 @@
     let currentStep = 0;
     let income = 1998; 
     let workYears = 30; 
-    let finalBalance = 0;
     let clearTimers = {}; 
     const ALLOWED_UNITS = ['威力','玉山','北二直轄一','北二直轄','昊陽','众山','誠山','華山','昕立','駿廷','駿山','駿鋮','雙贏','仁愛','鴻山','展毓','臻觀','宏國','宏觀','凌山','崧峰','忠信','敦煌','慶昇','東山','洽山'];
 
@@ -585,7 +575,7 @@
         
         const q6 = parseInt(document.getElementById('q6').value);
         
-        finalBalance = income - q1 - q2_all - q3 - q4 - q5 - q6;
+        const finalBalance = income - q1 - q2_all - q3 - q4 - q5 - q6;
         
         document.getElementById('r1').innerText = "- " + Math.round(q1).toLocaleString() + " 萬"; 
         document.getElementById('r2').innerText = "- " + Math.round(q2_all).toLocaleString() + " 萬"; 
@@ -597,42 +587,6 @@
         const rf = document.getElementById('rf'); 
         rf.innerText = Math.round(finalBalance).toLocaleString() + " 萬"; 
         if(finalBalance < 0) rf.style.color = "#FF8A8A"; else rf.style.color = "#81C784";
-    }
-
-    // 截圖並開啟 LINE 分享
-    function captureAndShareToLine() {
-        const u = document.getElementById('unit').value.replace(/\s+/g, '');
-        const n = document.getElementById('name').value.trim();
-        const balStr = Math.round(finalBalance).toLocaleString();
-
-        const captureArea = document.getElementById('capture_area');
-        
-        // 執行高解析度畫面轉繪為圖片
-        html2canvas(captureArea, { scale: 2, backgroundColor: '#FDFBF7' }).then(canvas => {
-            const image = canvas.toDataURL("image/png");
-            
-            // 自動下載截圖圖片至裝置
-            const link = document.createElement('a');
-            link.download = `1998財富試算_${u}_${n}.png`;
-            link.href = image;
-            link.click();
-
-            // 組合 LINE 訊息
-            let msg = `🌱 【1998 財富人生互動試算結果】\n`;
-            msg += `👤 單位/姓名：${u} ｜ ${n}\n`;
-            msg += `⏳ 預計工作年限：${workYears} 年\n`;
-            msg += `💰 生涯總預估收入：${income.toLocaleString()} 萬\n`;
-            msg += `------------------------\n`;
-            msg += `📊 最終財富餘額：${balStr} 萬\n\n`;
-            msg += `📷 報告截圖已自動儲存至您的裝置，請直接將圖片貼上分享給朋友！`;
-
-            const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
-            
-            // 延遲喚起 LINE APP 確保下載完成
-            setTimeout(() => {
-                window.open(lineUrl, '_blank');
-            }, 500);
-        });
     }
 
     calculate();
