@@ -1,404 +1,577 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>1998 財富人生互動試算</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>財富人生互動試算</title>
     <style>
-        :root {
-            --primary: #e67e22;
-            --secondary: #34495e;
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --text: #2c3e50;
-            --accent: #d35400;
-            --danger: #c0392b;
+        /* 文青可愛風專屬配色體系 */
+        :root { 
+            --m-green: #6B8E23;      /* 文青苔綠 */
+            --m-orange: #D97724;     /* 焦糖暖橘 */
+            --m-bg: #F5F2EB;         /* 日系燕麥白 */
+            --m-white: #FDFBF7;      /* 柔和純白 */
+            --m-text: #4A4A4A;       /* 深炭灰 */
+            --m-light-orange: #FFF6EE; /* 淺焦糖底色 */
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card);
-            padding: 25px;
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { color: var(--primary); margin: 5px 0; font-size: 1.6rem; }
-        .header p { color: #7f8c8d; font-size: 0.9rem; margin: 0; }
-
-        .progress-container {
-            height: 6px;
-            background: #eee;
-            border-radius: 3px;
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-
-        .step { display: none; min-height: 300px; }
-        .step.active { display: block; animation: slideIn 0.4s ease-out; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .question-box { margin-bottom: 25px; }
-        .question-title { font-size: 1.15rem; font-weight: 600; line-height: 1.5; margin-bottom: 15px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         
-        .input-field {
-            margin-bottom: 20px;
+        html, body { width: 100%; height: 100dvh; overflow: hidden; background-color: var(--m-bg); position: fixed; color: var(--m-text); }
+        body { font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif; display: flex; justify-content: center; align-items: center; }
+        
+        .container { width: 100vw; height: 100dvh; max-width: 420px; background: var(--m-white); display: flex; flex-direction: column; position: relative; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 10px 30px rgba(107,142,35,0.1); }
+        .header { background: var(--m-green); color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 1.05rem; letter-spacing: 1px; border-bottom: 3px solid var(--m-orange); flex-shrink: 0; border-radius: 0 0 16px 16px; }
+        
+        .step { display: none; padding: 12px 18px; flex-direction: column; height: calc(100dvh - 49px); overflow-y: auto; }
+        .step.active { display: flex; animation: slideIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .script-box { background: #F9F6F0; border-left: 4px solid var(--m-green); padding: 8px 12px; margin-bottom: 8px; font-size: 0.85rem; line-height: 1.5; color: #5A5A5A; border-radius: 4px 12px 12px 4px; flex-shrink: 0; }
+        .q-title { font-weight: bold; color: var(--m-green); margin-bottom: 4px; font-size: 0.98rem; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        
+        /* 數值區與動畫外框 */
+        .val-row-container { display: flex; justify-content: space-between; align-items: center; margin: 2px 0; }
+        .val-display { color: var(--m-orange); font-size: 1.1rem; font-weight: bold; text-align: left; transition: transform 0.2s ease; }
+        
+        /* 可愛文青動態小圖標基礎設定 */
+        .cute-avatar { 
+            font-size: 1.3rem; 
+            display: inline-block; 
+            transform-origin: bottom center; 
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.3); 
         }
-        .input-field label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--secondary);
+        .cute-avatar.active {
+            animation: cuteWiggle 0.4s ease-in-out infinite alternate;
         }
-        .input-field input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
+        @keyframes cuteWiggle {
+            0% { transform: rotate(-9deg) scale(var(--base-scale, 1.1)); }
+            100% { transform: rotate(9deg) scale(calc(var(--base-scale, 1.1) * 1.15)); }
         }
-
-        .input-display {
-            text-align: center;
-            padding: 15px;
-            background: #fff8f2;
-            border-radius: 15px;
-            margin-bottom: 15px;
+        
+        /* 拉桿造型設計 */
+        input[type=range] { width: 100%; height: 6px; border-radius: 10px; background: #E4DFD5; outline: none; -webkit-appearance: none; margin: 4px 0 8px 0; flex-shrink: 0; }
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            width: 22px; 
+            height: 22px; 
+            border-radius: 50%; 
+            background: var(--m-orange); 
+            cursor: pointer; 
+            border: 3px solid white; 
+            box-shadow: 0 3px 8px rgba(217,119,36,0.3); 
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.5); 
         }
-        .current-value { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
-        .sub-value { font-size: 0.9rem; color: #7f8c8d; margin-top: 5px; }
-
-        input[type="range"] {
-            width: 100%;
-            height: 10px;
-            border-radius: 5px;
-            background: #ddd;
-            outline: none;
-            -webkit-appearance: none;
-            margin: 20px 0;
+        input[type=range]:active::-webkit-slider-thumb { 
+            transform: scale(1.3); 
+            background: var(--m-green);
+            box-shadow: 0 3px 10px rgba(107,142,35,0.4);
         }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 25px; height: 25px;
-            background: var(--primary);
-            border-radius: 50%;
+        
+        .stat-card { background: var(--m-light-orange); border: 1px solid #F3E2D3; padding: 8px 12px; border-radius: 12px; margin: 4px 0; flex-shrink: 0; box-shadow: 0 4px 12px rgba(217,119,36,0.04); }
+        .stat-line { display: flex; justify-content: space-between; font-size: 0.83rem; margin-bottom: 2px; color: #6E6E6E; }
+        .stat-line b { color: var(--m-green); }
+        
+        .balance-footer { margin-top: auto; padding-top: 8px; border-top: 1px dashed #E4DFD5; background: var(--m-white); flex-shrink: 0; }
+        .bal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .bal-label { font-weight: bold; color: #8A8A8A; font-size: 0.85rem; }
+        .bal-val { font-size: 1.3rem; font-weight: bold; color: var(--m-orange); transition: all 0.3s ease; }
+        
+        .btn-group { display: flex; gap: 10px; width: 100%; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 40px; font-weight: bold; font-size: 0.88rem; cursor: pointer; text-align: center; transition: all 0.2s ease; }
+        .btn-next { background: var(--m-green); color: white; box-shadow: 0 4px 10px rgba(107,142,35,0.2); }
+        .btn-back { background: #EDEAE4; color: #7A7A7A; }
+        .btn:active { transform: scale(0.97); }
+        
+        .btn-cute-center {
+            align-self: center;
+            width: auto;
+            min-width: 180px;
+            padding: 11px 26px;
+            background: linear-gradient(135deg, #7FA62F, var(--m-green));
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 15px rgba(107,142,35,0.25);
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-
-        .btn-group { display: flex; gap: 12px; margin-top: 10px; }
-        button {
-            flex: 1; padding: 15px; border: none; border-radius: 12px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s;
-        }
-        .btn-next { background: var(--primary); color: white; }
-        .btn-prev { background: #f0f0f0; color: #7f8c8d; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-
-        /* Table Style */
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 0.85rem;
-            text-align: left;
-        }
-        .summary-table th, .summary-table td {
-            padding: 8px;
-            border: 1px solid #eee;
-        }
-        .summary-table th { background: #fdf2e9; color: var(--secondary); }
-
-        .result-card { text-align: center; }
-        .result-circle {
-            width: 160px; height: 160px;
-            border: 8px solid var(--primary);
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            display: flex;
-            flex-direction: column;
+            transition: all 0.2s ease;
+            display: inline-flex;
             justify-content: center;
             align-items: center;
+            gap: 6px;
         }
-        .result-amount { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
-        .insight-box {
-            background: #fdf2e9;
-            padding: 15px;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            text-align: left;
-            border-left: 4px solid var(--primary);
-            margin-bottom: 15px;
-        }
-        .summary-line {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: #34495e;
-        }
+        .btn-cute-center:active { transform: scale(0.96); }
+        .btn-cute-center:disabled { background: #DCD9D2; color: #A5A29B; box-shadow: none; cursor: not-allowed; }
+        .btn-cute-orange { background: linear-gradient(135deg, #EC944D, var(--m-orange)); box-shadow: 0 6px 15px rgba(217,119,36,0.25); }
+        
+        .divider { border-top: 1px dashed #E4DFD5; margin: 4px 0; flex-shrink: 0; }
+        .report-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.15); font-size: 0.82rem; }
+        .error-tip { color: #C0392B; font-size: 0.75rem; margin-top: 3px; display: none; font-weight: bold; }
+        
+        input[type=text] { background: #FAF8F5; border: 1.5px solid #E4DFD5; color: var(--m-text); transition: all 0.2s ease; }
+        input[type=text]:focus { outline: none; border-color: var(--m-green); background: #FFF; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-
-    <div class="header">
-        <h1>1998 互動觀測站</h1>
-        <p id="stepIndicator">0 / 10</p>
+    <div class="header">🌱 財富人生互動試算</div>
+    
+    <div class="step active" id="step0" style="justify-content: center;">
+        <div class="script-box">
+            你有聽過1998嗎？<br>你想想喔，以一個剛畢業的社會新鮮人，起薪三萬是不是還不錯？如果每年保證加薪3%，年薪保證14個月呢？是不是很不錯。那從25歲工作到55歲，30年就是一共賺了1998萬，這就是1998~<br><br><b>因為每個人的人生階段不同，接下來我們一起來看看專屬我們的財富人生試算吧！</b>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="display:block; font-weight:bold; margin-bottom:4px; font-size:0.85rem; color:var(--m-green);">🌿 通訊處</label>
+            <input type="text" id="unit" placeholder="請輸入指定的通訊處" style="width:100%; padding:10px; border-radius:12px; font-size:0.88rem;" oninput="checkStart()">
+            <div id="unitError" class="error-tip">⚠️ 該通訊處暫無使用權限</div>
+        </div>
+        <div style="margin-bottom:22px;">
+            <label style="display:block; font-weight:bold; margin-bottom:4px; font-size:0.85rem; color:var(--m-green);">✍️ 姓名</label>
+            <input type="text" id="name" placeholder="請輸入您的姓名" style="width:100%; padding:10px; border-radius:12px; font-size:0.88rem;" oninput="checkStart()">
+        </div>
+        <button class="btn-cute-center" id="startBtn" onclick="nextStep('_income')" disabled>✨ 開始試算 Go!</button>
     </div>
 
-    <!-- Step 0: Basic Info -->
-    <div class="step active" id="step0">
-        <div class="question-box">
-            <div class="question-title">請輸入基本資料以開始試算</div>
-            <div class="input-field">
-                <label>通訊處名稱</label>
-                <input type="text" id="unitName" placeholder="例如：凱基通訊處" oninput="checkBasicInfo()">
+    <div class="step" id="step_income">
+        <div class="q-title">☕（一）設定您專屬的起點</div>
+        <div class="script-box" style="padding: 6px 10px; margin-bottom: 6px;">試著滑動拉桿，右側的小圖標會隨著您的步伐跟著長大擺動喔！</div>
+        
+        <div>
+            <div class="val-row-container">
+                <div class="val-display">我的月收入：<span id="v_inc_m">3 萬</span></div>
+                <div class="cute-avatar" id="ani_inc_m">🌱</div>
             </div>
-            <div class="input-field">
-                <label>填寫人姓名</label>
-                <input type="text" id="userName" placeholder="請輸入姓名" oninput="checkBasicInfo()">
-            </div>
-            <p style="color:#7f8c8d; font-size:0.8rem;">* 系統將根據以上資料產出專屬整理表</p>
+            <input type="range" id="q_inc_m" min="1" max="100" step="0.5" value="3" oninput="calculate(); triggerAnimate('ani_inc_m', this)">
         </div>
-        <div class="btn-group">
-            <button class="btn-next" id="startBtn" onclick="goToStep(1)" disabled>進入試算</button>
+        
+        <div>
+            <div class="val-row-container">
+                <div class="val-display">每年含年終各領幾個月：<span id="v_inc_y">14 個月</span></div>
+                <div class="cute-avatar" id="ani_inc_y">✨</div>
+            </div>
+            <input type="range" id="q_inc_y" min="12" max="24" step="0.5" value="14" oninput="calculate(); triggerAnimate('ani_inc_y', this)">
+        </div>
+
+        <div>
+            <div class="val-row-container">
+                <div class="val-display">我現在的年齡：<span id="v_age">25 歲</span></div>
+                <div class="cute-avatar" id="ani_age">🐣</div>
+            </div>
+            <input type="range" id="q_age" min="18" max="65" step="1" value="25" oninput="calculate(); triggerAnimate('ani_age', this)">
+        </div>
+
+        <div>
+            <div class="val-row-container">
+                <div class="val-display">我預計工作幾年後退休：<span id="v_work_years">30 年</span></div>
+                <div class="cute-avatar" id="ani_work_years">⏳</div>
+            </div>
+            <input type="range" id="q_work_years" min="1" max="50" step="1" value="30" oninput="calculate(); triggerAnimate('ani_work_years', this)">
+        </div>
+
+        <div class="stat-card" style="background: #EBF2DF; border: 1px solid #D2E0B7; padding: 6px 10px; margin-top: 2px;">
+            <div class="stat-line"><span>預計退休年齡：</span><b id="retire_age_display" style="color:var(--m-green);">55 歲</b></div>
+            <div class="stat-line" style="font-weight: bold; margin-top: 2px; color: var(--m-text);"><span><span class="dynamic-years">30</span>年保薪加3%總收入：</span><b id="inc_total_30" style="color:var(--m-orange); font-size:1.1rem;">-- 萬</b></div>
+        </div>
+
+        <div class="balance-footer">
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep(0)">回首頁</button><button class="btn btn-next" onclick="nextStep(1)">開始規劃支出</button></div>
         </div>
     </div>
 
-    <!-- Step 1: Intro -->
     <div class="step" id="step1">
-        <div class="question-box">
-            <div class="question-title">你知道「1998」是什麼嗎？</div>
-            <p>假設從 25 歲工作到 55 歲（30年），起薪 3 萬，平均年收 14 個月且每年微幅調薪...</p>
-            <div class="input-display">
-                <div class="result-label">一輩子賺進總額</div>
-                <div class="current-value">1,998 萬</div>
-            </div>
+        <div class="q-title">🧺（二）基本開銷</div>
+        <div class="script-box">賺錢就是要花的，對吧？我們來算算要花掉多少錢喔，首先是基本開銷，你覺得一個月要花多少呢？</div>
+        <div class="val-row-container">
+            <div class="val-display" id="v1" style="font-size:1.2rem;">3 萬</div>
+            <div class="cute-avatar" id="ani_q1">🧺</div>
         </div>
-        <div class="btn-group"><button class="btn-next" onclick="goToStep(2)">開始扣除夢想</button></div>
+        <input type="range" id="q1" min="1" max="100" step="0.5" value="3" oninput="calculate(); triggerAnimate('ani_q1', this)">
+        <div class="stat-card">
+            <div class="stat-line"><span>每年開銷：</span><b id="y1">36 萬</b></div>
+            <div class="stat-line"><span class="dynamic-years-text">30年總計：</span><b id="t1" style="color:#C0392B;">1080 萬</b></div>
+        </div>
+        <div class="balance-footer">
+            <div class="bal-row"><span class="bal-label">剩下萬元可花：</span><span class="bal-val" id="bal1"></span></div>
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep('_income')">上一頁</button><button class="btn btn-next" onclick="nextStep(2)">下一題</button></div>
+        </div>
     </div>
 
-    <!-- Step 2: Living -->
     <div class="step" id="step2">
-        <div class="question-box">
-            <div class="question-title">1. 基本生活開銷</div>
-            <div class="input-display">
-                <div class="current-value" id="disp2">15,000</div>
-                <div class="sub-value">元 / 每月</div>
-            </div>
-            <input type="range" min="10000" max="50000" step="1000" value="15000" oninput="updateVal(2, this.value)">
-            <div class="summary-line">
-                <span>每年：<span id="yearly2">18</span> 萬</span>
-                <span>30年合計：<span id="sum2">540</span> 萬</span>
+        <div class="q-title">🚗（三）買車規劃</div>
+        <div class="script-box" style="margin-bottom:4px; padding:6px 10px;">那還有哪些開銷呢？是不是會想買車？一台車花多少萬買你覺得比較好？</div>
+        <div class="val-row-container">
+            <div class="val-display" id="v2_buy" style="font-size:1.2rem;">80 萬</div>
+            <div class="cute-avatar" id="ani_q2b">🚘</div>
+        </div>
+        <input type="range" id="q2_buy" min="0" max="1000" step="10" value="80" oninput="calculate(); triggerAnimate('ani_q2b', this)">
+        
+        <div class="stat-card" style="margin:2px 0; padding:6px 10px;">
+            <div class="stat-line"><span>一台車用十年花費：</span><b id="v2_single">80 萬</b></div>
+            <div class="stat-line"><span id="car_title_display">30年共三台車花費：</span><b id="car30_display" style="color:#C0392B;">240 萬</b></div>
+        </div>
+        <div class="divider"></div>
+        
+        <div class="script-box" style="margin-bottom:4px; padding:6px 10px;">再來，車子買來要加油、保養、稅金等等，一個月多少？</div>
+        <div class="val-row-container">
+            <div class="val-display" id="v2_maint" style="font-size:1.2rem;">0.8 萬</div>
+            <div class="cute-avatar" id="ani_q2m">⛽</div>
+        </div>
+        <input type="range" id="q2_maint" min="0" max="50" step="0.1" value="0.8" oninput="calculate(); triggerAnimate('ani_q2m', this)">
+        
+        <div class="stat-card" style="margin:2px 0; padding:6px 10px;">
+            <div class="stat-line"><span>養車年花費：</span><b id="y2">9.6 萬</b></div>
+            <div class="stat-line"><span class="dynamic-years-text">養車30年花費總計：</span><b id="t2" style="color:#C0392B;">288 萬</b></div>
+            <div class="stat-line" style="border-top:1px dashed #E4DFD5; padding-top:2px; margin-top:2px; font-weight:bold;">
+                <span>車輛總花費（買車+養車）：</span><b id="t2_all" style="color:#C0392B;">528 萬</b>
             </div>
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(1)">上一步</button><button class="btn-next" onclick="goToStep(3)">下一步</button></div>
+        <div class="balance-footer">
+            <div class="bal-row"><span class="bal-label">剩下萬元可花：</span><span class="bal-val" id="bal2"></span></div>
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep(1)">上一題</button><button class="btn btn-next" onclick="nextStep(3)">下一題</button></div>
+        </div>
     </div>
 
-    <!-- Step 3: Car Purchase -->
     <div class="step" id="step3">
-        <div class="question-box">
-            <div class="question-title">2. 買車預算</div>
-            <div class="input-display">
-                <div class="current-value" id="disp3">80</div>
-                <div class="sub-value">萬 / 每台</div>
-            </div>
-            <input type="range" min="0" max="300" step="10" value="80" oninput="updateVal(3, this.value)">
-            <p class="sub-value" style="text-align:center">30年換3台：<span id="sum3">240</span> 萬</p>
+        <div class="q-title">✈️（四）出國旅遊</div>
+        <div class="script-box">然後，我們這麼辛苦工作，每年一次招待自己出國旅遊不為過吧？你覺得花幾萬比較適合？那工作期間內總共要多少錢？</div>
+        <div class="val-row-container">
+            <div class="val-display" id="v3" style="font-size:1.2rem;">5 萬</div>
+            <div class="cute-avatar" id="ani_q3">🗼</div>
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(2)">上一步</button><button class="btn-next" onclick="goToStep(4)">下一步</button></div>
+        <input type="range" id="q3" min="0" max="300" step="1" value="5" oninput="calculate(); triggerAnimate('ani_q3', this)">
+        <div class="stat-card">
+            <div class="stat-line"><span>旅遊年花費：</span><b id="y3">5 萬</b></div>
+            <div class="stat-line"><span class="dynamic-years-text">旅遊30年總費：</span><b id="t3" style="color:#C0392B;">150 萬</b></div>
+        </div>
+        <div class="balance-footer">
+            <div class="bal-row"><span class="bal-label">剩下萬元可花：</span><span class="bal-val" id="bal3"></span></div>
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep(2)">上一題</button><button class="btn btn-next" onclick="nextStep(4)">下一題</button></div>
+        </div>
     </div>
 
-    <!-- Step 4: Car Maint -->
     <div class="step" id="step4">
-        <div class="question-box">
-            <div class="question-title">3. 養車固定成本</div>
-            <div class="input-display"><div class="current-value" id="disp4">10,000</div><div class="sub-value">元 / 每月</div></div>
-            <input type="range" min="0" max="30000" step="500" value="10000" oninput="updateVal(4, this.value)">
-            <p class="sub-value" style="text-align:center">30年合計：<span id="sum4">360</span> 萬</p>
+        <div class="q-title">🏡（五）成家買房</div>
+        <div class="script-box">你會不會希望買一間房，假設要花多少萬買房，利息加上一些費用支出也得再多支出500萬（若預算為0則無利息），扣掉這些，是不是已經不夠用了</div>
+        <div class="val-row-container">
+            <div class="val-display" id="v4" style="font-size:1.2rem;">1000 萬</div>
+            <div class="cute-avatar" id="ani_q4">🏠</div>
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(3)">上一步</button><button class="btn-next" onclick="goToStep(5)">下一步</button></div>
+        <input type="range" id="q4" min="0" max="10000" step="50" value="1000" oninput="calculate(); triggerAnimate('ani_q4', this)">
+        <div class="stat-card">
+            <div class="stat-line"><span>買房預算：</span><b id="v4_base">1000 萬</b></div>
+            <div class="stat-line"><span>估計利息與相關支出：</span><b id="v4_interest">500 萬</b></div>
+            <div class="stat-line" style="border-top:1px dashed #E4DFD5; padding-top:2px; margin-top:2px; font-weight:bold;">
+                <span>購房總支出：</span><b id="t4" style="color:#C0392B;">1500 萬</b>
+            </div>
+        </div>
+        <div class="balance-footer">
+            <div class="bal-row"><span class="bal-label">剩下萬元可花：</span><span class="bal-val" id="bal4"></span></div>
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep(3)">上一題</button><button class="btn btn-next" onclick="nextStep(5)">下一題</button></div>
+        </div>
     </div>
 
-    <!-- Step 5: Travel -->
     <div class="step" id="step5">
-        <div class="question-box">
-            <div class="question-title">4. 年度旅遊規劃</div>
-            <div class="input-display"><div class="current-value" id="disp5">50,000</div><div class="sub-value">元 / 每年</div></div>
-            <input type="range" min="0" max="300000" step="5000" value="50000" oninput="updateVal(5, this.value)">
-            <p class="sub-value" style="text-align:center">30年合計：<span id="sum5">150</span> 萬</p>
+        <div class="q-title">🍼（六）子女教育費</div>
+        <div class="script-box">如果還要生小孩，我們來算算養育小孩的費用吧！設定每個小孩每月開銷、打算生幾個，以及要養育幾年呢？</div>
+        
+        <!-- 拉霸 1：月費 -->
+        <div style="margin-bottom: 2px;">
+            <div class="val-row-container">
+                <div class="val-display">每個小孩每月教育生活費：<span id="v5_m">2 萬</span></div>
+                <div class="cute-avatar" id="ani_q5m">🧸</div>
+            </div>
+            <input type="range" id="q5_m" min="0" max="100" step="0.5" value="2" oninput="calculate(); triggerAnimate('ani_q5m', this)">
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(4)">上一步</button><button class="btn-next" onclick="goToStep(6)">下一步</button></div>
+
+        <!-- 拉霸 2：人數 -->
+        <div style="margin-bottom: 2px;">
+            <div class="val-row-container">
+                <div class="val-display">預計生育子女數量：<span id="v5_count">1 位</span></div>
+                <div class="cute-avatar" id="ani_q5c">👶</div>
+            </div>
+            <input type="range" id="q5_count" min="0" max="10" step="1" value="1" oninput="calculate(); triggerAnimate('ani_q5c', this)">
+        </div>
+
+        <!-- 拉霸 3：年數 -->
+        <div style="margin-bottom: 2px;">
+            <div class="val-row-container">
+                <div class="val-display">預計養育至幾歲（年）：<span id="v5_years">20 年</span></div>
+                <div class="cute-avatar" id="ani_q5y">🎓</div>
+            </div>
+            <input type="range" id="q5_years" min="0" max="30" step="1" value="20" oninput="calculate(); triggerAnimate('ani_q5y', this)">
+        </div>
+
+        <div class="stat-card" style="margin-top: 2px;">
+            <div class="stat-line"><span>單名子女每年開銷：</span><b id="y5_single" style="color:#333;">24 萬</b></div>
+            <div class="stat-line"><span>全家每年子女總開銷：</span><b id="y5_total" style="color:#333;">24 萬</b></div>
+            <div class="stat-line" style="border-top:1px dashed #E4DFD5; padding-top:2px; margin-top:2px; font-weight:bold;">
+                <span>子女養育總花費：</span><b id="t5" style="color:#C0392B;">480 萬</b>
+            </div>
+        </div>
+        <div class="balance-footer">
+            <div class="bal-row"><span class="bal-label">剩下萬元可花：</span><span class="bal-val" id="bal5"></span></div>
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep(4)">上一題</button><button class="btn btn-next" onclick="nextStep(6)">下一題</button></div>
+        </div>
     </div>
 
-    <!-- Step 6: House -->
     <div class="step" id="step6">
-        <div class="question-box">
-            <div class="question-title">5. 購屋成家預算</div>
-            <div class="input-display"><div class="current-value" id="disp6">1,500</div><div class="sub-value">萬</div></div>
-            <input type="range" min="0" max="5000" step="50" value="1500" oninput="updateVal(6, this.value)">
+        <div class="q-title">🎒（七）準備退休金</div>
+        <div class="script-box">就算買房、生小孩都不是你會想做的事，那退休金呢？退休是不是靠自己準備，你覺得要多少錢才可以退休？</div>
+        <div class="val-row-container">
+            <div class="val-display" id="v6" style="font-size:1.2rem;">1000 萬</div>
+            <div class="cute-avatar" id="ani_q6">👑</div>
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(5)">上一步</button><button class="btn-next" onclick="goToStep(7)">下一步</button></div>
+        <input type="range" id="q6" min="0" max="10000" step="50" value="1000" oninput="calculate(); triggerAnimate('ani_q6', this)">
+        <div class="stat-card">
+            <div class="stat-line"><span>預計準備退休金：</span><b id="t6">1000 萬</b></div>
+        </div>
+        <div class="balance-footer">
+            <div class="bal-row"><span class="bal-label">剩下萬元可花：</span><span class="bal-val" id="bal6"></span></div>
+            <div class="btn-group"><button class="btn btn-back" onclick="prevStep(5)">上一題</button><button class="btn btn-next" onclick="nextStep(7)">查看總結</button></div>
+        </div>
     </div>
 
-    <!-- Step 7: Kids -->
-    <div class="step" id="step7">
-        <div class="question-box">
-            <div class="question-title">6. 養育下一代</div>
-            <div class="input-display"><div class="current-value" id="disp7">500</div><div class="sub-value">萬</div></div>
-            <input type="range" min="0" max="2000" step="50" value="500" oninput="updateVal(7, this.value)">
+    <div class="step" id="step7" style="justify-content: center; padding: 5px 15px;">
+        <div id="res_header" style="text-align:center; margin-bottom:6px; font-weight:bold; color:var(--m-green); font-size:0.95rem;"></div>
+        <div class="script-box" style="margin-bottom:8px; text-align:center; font-weight:bold; background:#FFF0F0; border-left:4px solid #C0392B; padding:6px; font-size:0.82rem; color: #7F231C;">
+            我們一輩子工作賺的錢，怎麼會夠用？不夠怎麼辦？
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(6)">上一步</button><button class="btn-next" onclick="goToStep(8)">下一步</button></div>
-    </div>
-
-    <!-- Step 8: Retirement -->
-    <div class="step" id="step8">
-        <div class="question-box">
-            <div class="question-title">7. 退休生活準備</div>
-            <div class="input-display">
-                <div class="current-value" id="disp8">30,000</div>
-                <div class="sub-value">元 / 每月</div>
-            </div>
-            <input type="range" min="10000" max="150000" step="1000" value="30000" oninput="updateVal(8, this.value)">
-            <div class="summary-line">
-                <span>每年：<span id="yearly8">36</span> 萬</span>
-                <span>30年合計：<span id="sum8">1080</span> 萬</span>
-            </div>
+        <div style="background:var(--m-green); color:white; border-radius:16px; padding:12px 16px; box-shadow:0 8px 20px rgba(107,142,35,0.2);">
+            <div class="report-item" style="font-weight:bold; border-bottom:1.5px solid white; padding-bottom:4px;"><span id="report_title_years">項目明細 (工作30年)</span><span>預算金額</span></div>
+            <div class="report-item" style="background:rgba(255,255,255,0.12); font-weight:bold; border-radius: 4px; padding: 7px 4px;"><span>預估生涯總收入</span><span id="r_inc_total"></span></div>
+            <div class="report-item"><span>1. 基本開銷總計</span><span id="r1"></span></div>
+            <div class="report-item"><span>2. 車輛花費 (含養車)</span><span id="r2"></span></div>
+            <div class="report-item"><span>3. 出國旅遊總計</span><span id="r3"></span></div>
+            <div class="report-item"><span>4. 房屋總支出 (含利息)</span><span id="r4"></span></div>
+            <div class="report-item"><span>5. 子女養育總費</span><span id="r5"></span></div>
+            <div class="report-item"><span>6. 預計準備退休金</span><span id="r6"></span></div>
+            <div class="report-item" style="border:none; margin-top:4px; font-size:1.05rem; font-weight:bold; padding-top:4px;"><span>最終財富餘額</span><span id="rf"></span></div>
         </div>
-        <div class="btn-group"><button class="btn-prev" onclick="goToStep(7)">上一步</button><button class="btn-next" onclick="calculateResult()">結算資產</button></div>
-    </div>
-
-    <!-- Step 9: Results & Summary Table -->
-    <div class="step" id="step9">
-        <div class="result-card">
-            <p style="font-size: 0.9rem; color: var(--secondary); margin-bottom:5px;"><span id="resUnit"></span> / <span id="resUser"></span></p>
-            <div class="result-circle">
-                <div class="result-label">最終餘額</div>
-                <div class="result-amount" id="finalVal">0</div>
-                <div class="result-label">萬</div>
-            </div>
-            <div class="insight-box" id="insightBox"></div>
-            
-            <h3 style="font-size: 1rem; color: var(--secondary); margin: 20px 0 10px;">📊 財富人生整理表</h3>
-            <table class="summary-table">
-                <thead><tr><th>項目</th><th>預估金額 (萬)</th></tr></thead>
-                <tbody id="tableBody"></tbody>
-                <tfoot><tr style="background:#f8f9fa; font-weight:bold;"><td>總收入</td><td>1,998</td></tr></tfoot>
-            </table>
-
-            <div style="margin-top: 20px; font-size: 0.75rem; color: #bdc3c7; border-top: 1px solid #eee; padding-top: 10px;">
-                企劃製作：KGI Life 組織發展團隊
-            </div>
-        </div>
-        <div class="btn-group" style="margin-top:20px;">
-            <button class="btn-prev" onclick="location.reload()">重新試算</button>
-        </div>
+        <div style="text-align:center; font-size:0.72rem; color:#9A968E; margin-top:6px;">💡 提示：您可以直接對此畫面進行螢幕截圖留存</div>
+        <button class="btn-cute-center btn-cute-orange" style="margin-top:10px;" onclick="location.reload()">🔄 再測一次 🐾</button>
     </div>
 </div>
 
 <script>
     let currentStep = 0;
-    const totalSteps = 10;
-    const baseIncome = 1998;
-    let vals = { 2: 15000, 3: 80, 4: 10000, 5: 50000, 6: 1500, 7: 500, 8: 30000 };
+    let income = 1998; 
+    let workYears = 30; 
+    let clearTimers = {}; 
+    const ALLOWED_UNITS = ['威力','玉山','北二直轄一','北二直轄','昊陽','众山','誠山','華山','昕立','駿廷','駿山','駿鋮','雙贏','仁愛','鴻山','展毓','臻觀','宏國','宏觀','凌山','崧峰','忠信','敦煌','慶昇','東山','洽山'];
 
-    function checkBasicInfo() {
-        const uName = document.getElementById('unitName').value;
-        const pName = document.getElementById('userName').value;
-        document.getElementById('startBtn').disabled = !(uName.trim() && pName.trim());
+    function triggerAnimate(avatarId, sliderEl) {
+        const avatar = document.getElementById(avatarId);
+        if(!avatar) return;
+        
+        const min = parseFloat(sliderEl.min) || 0;
+        const max = parseFloat(sliderEl.max) || 100;
+        const val = parseFloat(sliderEl.value);
+        const percent = (val - min) / (max - min || 1);
+        
+        const dynamicScale = 1.0 + (percent * 0.6);
+        
+        avatar.style.setProperty('--base-scale', dynamicScale);
+        avatar.classList.add('active');
+        avatar.style.transform = `scale(${dynamicScale})`;
+
+        if (clearTimers[avatarId]) clearTimeout(clearTimers[avatarId]);
+        clearTimers[avatarId] = setTimeout(() => {
+            avatar.classList.remove('active');
+            avatar.style.transform = `scale(${dynamicScale})`; 
+        }, 300);
     }
 
-    function updateVal(step, val) {
-        vals[step] = parseInt(val);
-        document.getElementById('disp' + step).innerText = vals[step].toLocaleString();
-        if(step === 2) {
-            document.getElementById('yearly2').innerText = Math.round(vals[2]*12/10000 * 10) / 10;
-            document.getElementById('sum2').innerText = Math.round(vals[2]*12*30/10000);
-        }
-        if(step === 3) document.getElementById('sum3').innerText = vals[3]*3;
-        if(step === 4) document.getElementById('sum4').innerText = Math.round(vals[4]*12*30/10000);
-        if(step === 5) document.getElementById('sum5').innerText = Math.round(vals[5]*30/10000);
-        if(step === 8) {
-            document.getElementById('yearly8').innerText = Math.round(vals[8]*12/10000 * 10) / 10;
-            document.getElementById('sum8').innerText = Math.round(vals[8]*12*30/10000);
-        }
-    }
+    function checkStart() {
+        // 使用 replace 去除全形與半形空白
+        const u = document.getElementById('unit').value.replace(/\s+/g, '');
+        const n = document.getElementById('name').value.trim();
+        const errorTip = document.getElementById('unitError');
+        const startBtn = document.getElementById('startBtn');
 
-    function goToStep(n) {
-        document.getElementById('step' + currentStep).classList.remove('active');
-        currentStep = n;
-        document.getElementById('step' + currentStep).classList.add('active');
-        document.getElementById('progressBar').style.width = (currentStep / (totalSteps-1) * 100) + '%';
-        document.getElementById('stepIndicator').innerText = currentStep + ' / ' + (totalSteps-1);
-    }
-
-    function calculateResult() {
-        document.getElementById('resUnit').innerText = document.getElementById('unitName').value;
-        document.getElementById('resUser').innerText = document.getElementById('userName').value;
-
-        const c2 = Math.round(vals[2]*12*30/10000);
-        const c3 = vals[3]*3;
-        const c4 = Math.round(vals[4]*12*30/10000);
-        const c5 = Math.round(vals[5]*30/10000);
-        const c6 = vals[6];
-        const c7 = vals[7];
-        const c8 = Math.round(vals[8]*12*30/10000);
-        
-        const totalCost = c2 + c3 + c4 + c5 + c6 + c7 + c8;
-        const remaining = baseIncome - totalCost;
-        
-        document.getElementById('finalVal').innerText = remaining.toLocaleString();
-        document.getElementById('finalVal').style.color = remaining < 0 ? "var(--danger)" : "var(--accent)";
-
-        const tableData = [
-            ["基本生活開銷", c2], ["買車預算", c3], ["養車成本", c4],
-            ["旅遊規劃", c5], ["購屋預算", c6], ["子女教育", c7], ["退休準備", c8]
-        ];
-        
-        let html = "";
-        tableData.forEach(row => { html += `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`; });
-        document.getElementById('tableBody').innerHTML = html;
-
-        const insightEl = document.getElementById('insightBox');
-        if (remaining < 0) {
-            insightEl.innerHTML = `⚠️ <b>資產負債！</b><br>目前的理想生活總支出為 ${totalCost} 萬，已超出收入。這表示需要更早開始進行資產撥備或調整支出結構。`;
+        if (u.length > 0) {
+            if (ALLOWED_UNITS.includes(u)) {
+                errorTip.style.display = 'none';
+                startBtn.disabled = !(n.length > 0);
+            } else {
+                errorTip.style.display = 'block';
+                startBtn.disabled = true;
+            }
         } else {
-            insightEl.innerHTML = `✅ <b>餘額緊迫。</b><br>雖然剩餘 ${remaining} 萬，但尚未計入通膨（30年後1元購買力可能減半）。建議透過專業規劃來守護財富。`;
+            errorTip.style.display = 'none';
+            startBtn.disabled = true;
         }
-        goToStep(9);
     }
+
+    function nextStep(s) {
+        document.getElementById('step' + currentStep).classList.remove('active');
+        currentStep = s;
+        document.getElementById('step' + s).classList.add('active');
+        if(s === 7) finalize();
+    }
+
+    function prevStep(s) {
+        document.getElementById('step' + currentStep).classList.remove('active');
+        currentStep = s;
+        document.getElementById('step' + s).classList.add('active');
+    }
+
+    function calculate() {
+        // (一) 收入設定
+        const incM = parseFloat(document.getElementById('q_inc_m').value);
+        const incY = parseFloat(document.getElementById('q_inc_y').value);
+        const currentAge = parseInt(document.getElementById('q_age').value);
+        workYears = parseInt(document.getElementById('q_work_years').value);
+
+        document.getElementById('v_inc_m').innerText = incM + " 萬";
+        document.getElementById('v_inc_y').innerText = incY + " 個月";
+        document.getElementById('v_age').innerText = currentAge + " 歲";
+        document.getElementById('v_work_years').innerText = workYears + " 年";
+        document.getElementById('retire_age_display').innerText = (currentAge + workYears) + " 歲";
+
+        const dynLabels = document.querySelectorAll('.dynamic-years');
+        dynLabels.forEach(el => el.innerText = workYears);
+        const dynTexts = document.querySelectorAll('.dynamic-years-text');
+        dynTexts.forEach(el => el.innerText = workYears + "年總計：");
+
+        let firstYearSalary = incM * incY;
+        let totalIncome = 0;
+        let currentYearSalary = firstYearSalary;
+        for (let year = 1; year <= workYears; year++) {
+            totalIncome += currentYearSalary;
+            currentYearSalary *= 1.03; 
+        }
+        
+        income = Math.round(totalIncome);
+        document.getElementById('inc_total_30').innerText = income.toLocaleString() + " 萬";
+
+        // (二) 基本開銷
+        const q1 = parseFloat(document.getElementById('q1').value);
+        const t1 = q1 * 12 * workYears; 
+        document.getElementById('v1').innerText = q1 + " 萬";
+        document.getElementById('y1').innerText = (q1 * 12).toFixed(1) + " 萬";
+        document.getElementById('t1').innerText = Math.round(t1).toLocaleString() + " 萬";
+
+        // (三) 買車規劃
+        const q2b = parseInt(document.getElementById('q2_buy').value);
+        const q2m = parseFloat(document.getElementById('q2_maint').value);
+        
+        let carCount = Math.max(1, Math.ceil(workYears / 10)); 
+        document.getElementById('car_title_display').innerText = workYears + "年共" + carCount + "台車花費：";
+        const t2b_3 = q2b * carCount; 
+        const t2m = q2m * 12 * workYears; 
+        const t2_total = t2b_3 + t2m; 
+        document.getElementById('v2_buy').innerText = q2b + " 萬";
+        document.getElementById('v2_single').innerText = q2b + " 萬";
+        document.getElementById('car30_display').innerText = t2b_3.toLocaleString() + " 萬";
+        document.getElementById('v2_maint').innerText = q2m + " 萬";
+        document.getElementById('y2').innerText = (q2m * 12).toFixed(1) + " 萬";
+        document.getElementById('t2').innerText = Math.round(t2m).toLocaleString() + " 萬";
+        document.getElementById('t2_all').innerText = Math.round(t2_total).toLocaleString() + " 萬";
+
+        // (四) 出國旅遊
+        const q3 = parseInt(document.getElementById('q3').value);
+        const t3 = q3 * workYears; 
+        document.getElementById('v3').innerText = q3 + " 萬";
+        document.getElementById('y3').innerText = q3 + " 萬";
+        document.getElementById('t3').innerText = t3.toLocaleString() + " 萬";
+
+        // (五) 成家買房 (若預算為0則利息為0)
+        const q4 = parseInt(document.getElementById('q4').value);
+        const interest = (q4 === 0) ? 0 : 500;
+        const t4 = q4 + interest; 
+        document.getElementById('v4').innerText = q4 + " 萬";
+        document.getElementById('v4_base').innerText = q4 + " 萬";
+        document.getElementById('v4_interest').innerText = interest + " 萬";
+        document.getElementById('t4').innerText = t4.toLocaleString() + " 萬";
+
+        // (六) 子女教育費 (3拉霸連動計算)
+        const q5m = parseFloat(document.getElementById('q5_m').value);
+        const q5count = parseInt(document.getElementById('q5_count').value);
+        const q5years = parseInt(document.getElementById('q5_years').value);
+
+        const y5_single = q5m * 12;
+        const y5_total = y5_single * q5count;
+        const t5 = y5_total * q5years;
+
+        document.getElementById('v5_m').innerText = q5m + " 萬";
+        document.getElementById('v5_count').innerText = q5count + " 位";
+        document.getElementById('v5_years').innerText = q5years + " 年";
+        document.getElementById('y5_single').innerText = y5_single.toFixed(1) + " 萬";
+        document.getElementById('y5_total').innerText = y5_total.toFixed(1) + " 萬";
+        document.getElementById('t5').innerText = Math.round(t5).toLocaleString() + " 萬";
+
+        // (七) 準備退休金
+        const q6 = parseInt(document.getElementById('q6').value);
+        document.getElementById('v6').innerText = q6 + " 萬";
+        document.getElementById('t6').innerText = q6.toLocaleString() + " 萬";
+
+        // 餘額動態扣除計算
+        const b1 = income - t1;
+        const b2 = b1 - t2_total;
+        const b3 = b2 - t3;
+        const b4 = b3 - t4;
+        const b5 = b4 - t5;
+        const b6 = b5 - q6;
+
+        document.getElementById('bal1').innerText = Math.round(b1).toLocaleString();
+        document.getElementById('bal2').innerText = Math.round(b2).toLocaleString();
+        document.getElementById('bal3').innerText = Math.round(b3).toLocaleString();
+        document.getElementById('bal4').innerText = Math.round(b4).toLocaleString();
+        document.getElementById('bal5').innerText = Math.round(b5).toLocaleString();
+        document.getElementById('bal6').innerText = Math.round(b6).toLocaleString();
+
+        for(let i=1; i<=6; i++) {
+            const el = document.getElementById('bal' + i);
+            if(el) {
+                let val = parseInt(el.innerText.replace(/,/g, ''));
+                el.style.color = val < 0 ? "#C0392B" : "var(--m-orange)";
+            }
+        }
+    }
+
+    function finalize() {
+        const u = document.getElementById('unit').value.replace(/\s+/g, ''); 
+        const n = document.getElementById('name').value.trim(); 
+        document.getElementById('res_header').innerText = "🌿 " + u + " ｜ " + n;
+        document.getElementById('report_title_years').innerText = "項目明細 (工作" + workYears + "年)";
+        document.getElementById('r_inc_total').innerText = income.toLocaleString() + " 萬";
+
+        const q1 = parseFloat(document.getElementById('q1').value) * 12 * workYears;
+        
+        let carCount = Math.max(1, Math.ceil(workYears / 10));
+        const q2b_3 = parseInt(document.getElementById('q2_buy').value) * carCount;
+        const q2m = parseFloat(document.getElementById('q2_maint').value) * 12 * workYears;
+        const q2_all = q2b_3 + q2m;
+        
+        const q3 = parseInt(document.getElementById('q3').value) * workYears;
+        
+        const q4_base = parseInt(document.getElementById('q4').value);
+        const q4 = q4_base + (q4_base === 0 ? 0 : 500);
+        
+        const q5m = parseFloat(document.getElementById('q5_m').value);
+        const q5count = parseInt(document.getElementById('q5_count').value);
+        const q5years = parseInt(document.getElementById('q5_years').value);
+        const q5 = q5m * 12 * q5count * q5years;
+        
+        const q6 = parseInt(document.getElementById('q6').value);
+        
+        const fin = income - q1 - q2_all - q3 - q4 - q5 - q6;
+        
+        document.getElementById('r1').innerText = "- " + Math.round(q1).toLocaleString() + " 萬"; 
+        document.getElementById('r2').innerText = "- " + Math.round(q2_all).toLocaleString() + " 萬"; 
+        document.getElementById('r3').innerText = "- " + q3.toLocaleString() + " 萬"; 
+        document.getElementById('r4').innerText = "- " + q4.toLocaleString() + " 萬"; 
+        document.getElementById('r5').innerText = "- " + Math.round(q5).toLocaleString() + " 萬"; 
+        document.getElementById('r6').innerText = "- " + q6.toLocaleString() + " 萬";
+        
+        const rf = document.getElementById('rf'); 
+        rf.innerText = Math.round(fin).toLocaleString() + " 萬"; 
+        if(fin < 0) rf.style.color = "#FF8A8A"; else rf.style.color = "#81C784";
+    }
+
+    calculate();
 </script>
 </body>
 </html>
